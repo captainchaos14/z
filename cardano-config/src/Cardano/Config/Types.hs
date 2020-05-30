@@ -74,7 +74,7 @@ import           Ouroboros.Consensus.Protocol.Abstract (ValidationErr)
 import           Ouroboros.Consensus.Util.Condense (Condense (..))
 import           Ouroboros.Consensus.Shelley.Ledger (shelleyState, getPParams)
 import           Ouroboros.Consensus.Shelley.Ledger.Block (ShelleyBlock)
-import           Ouroboros.Network.Block (HeaderHash, MaxSlotNo(..))
+import           Ouroboros.Network.Block (HeaderHash, MaxSlotNo(..))-- HasHeader,  Serialised)
 
 import           Cardano.Chain.Block (adoptedProtocolParameters, cvsUpdateState)
 import           Cardano.Chain.Update (ppMaxBlockSize)
@@ -203,7 +203,7 @@ data NodeConfiguration =
     , ncLoggingSwitch :: Bool
     , ncLogMetrics :: Bool
     , ncSocketPath :: Maybe SocketPath
-    , ncTraceConfig :: TraceConfig
+    , ncTraceConfig :: TraceOptions
     , ncViewMode :: ViewMode
     , ncUpdate :: Update
     } deriving Show
@@ -230,7 +230,7 @@ instance FromJSON NodeConfiguration where
                 loggingSwitch <- v .:? "TurnOnLogging" .!= True
                 logMetrics <- v .:? "TurnOnLogMetrics" .!= True
                 traceConfig <- if not loggingSwitch
-                               then pure traceConfigMute
+                               then return TracingOff
                                else traceConfigParser v
 
                 pure $ NodeConfiguration
@@ -402,6 +402,7 @@ instance HasTxMaxSize (ExtLedgerState (SimpleBlock a b)) where
 -- When you need a 'Show' or 'Condense' instance for more types, just add the
 -- appropriate constraint here. There's no need to modify the consensus
 -- code-base, unless the corresponding instance is missing.
+-- TODO: Put the shared constaints in here!
 type TraceConstraints blk =
     ( Condense blk
     , Condense [blk]
@@ -409,6 +410,8 @@ type TraceConstraints blk =
     , Condense (HeaderHash blk)
     , Condense (GenTx blk)
     , Condense (TxId (GenTx blk))
+ --   , Condense (TxId (GenTx (Serialised blk))) -- ADD THE MISSING CONSTRAINTS HERE
+  --  , HasHeader (Serialised blk) -- TODO: Need to write the instances that ghc asks about
     , HasTxs blk
     , HasTxId (GenTx blk)
     , Show (ApplyTxErr blk)

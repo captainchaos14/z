@@ -54,6 +54,8 @@ import qualified Ouroboros.Consensus.Cardano as Consensus
 import           Ouroboros.Consensus.Byron.Ledger (ByronBlock)
 import           Ouroboros.Consensus.Node.Run (RunNode)
 
+-- import           Ouroboros.Consensus.Util.Condense (Condense(..))
+
 
 
 -- | Perform an action that expects ProtocolInfo for Byron/PBFT,

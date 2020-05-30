@@ -49,4 +49,3 @@ instance FromJSON Update.ApplicationName where
   parseJSON invalid  =
     panic $ "Parsing of application name failed due to type mismatch. "
     <> "Encountered: " <> (Text.pack $ Prelude.show invalid)
-

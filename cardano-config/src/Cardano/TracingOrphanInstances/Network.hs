@@ -8,6 +8,13 @@
 
 {-# OPTIONS_GHC -Wno-orphans  #-}
 
+{-# OPTIONS_GHC -Wno-orphans  #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 module Cardano.TracingOrphanInstances.Network
   ( showTip
   , showPoint
@@ -35,6 +42,9 @@ import           Ouroboros.Network.NodeToNode
                    (WithAddr(..), ErrorPolicyTrace(..), TraceSendRecv (..))
 import           Ouroboros.Network.Protocol.BlockFetch.Type
                    (BlockFetch, Message(..))
+import           Ouroboros.Network.Protocol.ChainSync.Type (ChainSync)
+import           Ouroboros.Network.Protocol.LocalStateQuery.Type (LocalStateQuery)
+import           Ouroboros.Network.Protocol.LocalTxSubmission.Type (LocalTxSubmission)
 import           Ouroboros.Network.Protocol.TxSubmission.Type
                    (Message (..), TxSubmission)
 import           Ouroboros.Network.Snocket (LocalAddress (..))
@@ -50,7 +60,7 @@ import           Ouroboros.Network.TxSubmission.Outbound
 -- network protocols
 import           Ouroboros.Consensus.Util.Condense (Condense, condense)
 import           Ouroboros.Consensus.Mempool.API
-                   (GenTx, HasTxId, HasTxs(..), TxId, txId)
+                   (ApplyTxErr, GenTx, HasTxId, HasTxs(..), TxId, txId)
 
 
 showTip :: Condense (HeaderHash blk)
@@ -409,6 +419,14 @@ instance ( Condense (HeaderHash blk)
   toObject _v (AnyMessage MsgClientDone{}) =
     mkObject [ "kind" .= String "MsgClientDone" ]
 
+instance ToObject (AnyMessage (LocalStateQuery blk query)) where
+  toObject _verb  _ = panic "" --TODO: FIX ME
+
+instance ToObject (AnyMessage (LocalTxSubmission tx err)) where
+  toObject _verb  _ = panic "" --TODO: FIX ME
+
+instance ToObject (AnyMessage (ChainSync blk tip)) where
+  toObject _verb  _ = panic "" --TODO: FIX ME
 
 instance ToObject (FetchDecision [Point header]) where
   toObject _verb (Left decline) =
@@ -474,6 +492,8 @@ instance (Show txid, Show tx)
     mkObject
       [ "kind" .= String "MsgKThxBye" ]
 
+instance Condense (TxId (GenTx (Serialised blk))) where
+  condense _ = panic "" -- TODO: FIX ME
 
 instance Condense (HeaderHash blk)
       => ToObject (Point blk) where

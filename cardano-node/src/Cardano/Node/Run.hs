@@ -10,6 +10,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
+{-# OPTIONS_GHC -Wno-orphans  #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
+
 #if !defined(mingw32_HOST_OS)
 #define UNIX
 #endif
@@ -55,8 +63,7 @@ import           Cardano.BM.Trace
 import           Cardano.Config.GitRev (gitRev)
 import           Cardano.Config.Logging (LoggingLayer (..), Severity (..))
 import           Cardano.Config.TraceConfig (traceBlockFetchDecisions,
-                     traceChainDB, traceConfigVerbosity, traceForge,
-                     traceMempool, traceEnabled)
+                     TraceOptions(..), TraceSelection(..))
 import           Cardano.Config.Types (NodeConfiguration (..), ViewMode (..))
 
 import           Ouroboros.Network.Magic (NetworkMagic (..))
@@ -102,17 +109,18 @@ runNode
   -> IO ()
 runNode loggingLayer npm@NodeCLI{protocolFiles} = do
     hn <- hostname
+
     let !trace = setHostname hn $
                  llAppendName loggingLayer "node" (llBasicTrace loggingLayer)
     let tracer = contramap pack $ toLogObject trace
 
     nc <- parseNodeConfiguration npm
-
-    traceWith tracer $ "tracing verbosity = " ++
-                         case traceConfigVerbosity $ ncTraceConfig nc of
-                           NormalVerbosity -> "normal"
-                           MinimalVerbosity -> "minimal"
-                           MaximalVerbosity -> "maximal"
+    --TODO: We can switch off tracing here
+    traceWith tracer $ "tracing verbosity = " ++ "FIX ME"
+                        -- case traceVerbosity $ ncTraceConfig nc of
+                        --   NormalVerbosity -> "normal"
+                        --   MinimalVerbosity -> "minimal"
+                        --   MaximalVerbosity -> "maximal"
     eitherSomeProtocol <- runExceptT $ mkConsensusProtocol nc (Just protocolFiles)
 
     SomeConsensusProtocol (p :: Consensus.Protocol blk (BlockProtocol blk)) <-
@@ -152,7 +160,8 @@ runNode loggingLayer npm@NodeCLI{protocolFiles} = do
                      , ("TraceForge",traceForge)
                      , ("TraceMempool",traceMempool)
                      ]
-            trsinactive = filter (\(_,f) -> not $ traceEnabled (ncTraceConfig nc) f) reqtrs
+                     --TODO: Think about how refactor this
+            trsinactive = [] --filter (\(_,f) -> not $ traceEnabled (ncTraceConfig nc) f) reqtrs
         unless (List.null trsinactive) $ do
             putTextLn "for full functional 'LiveView', please turn on the following tracers in the configuration file:"
             forM_ trsinactive $ \(m, _) ->
@@ -487,4 +496,3 @@ producerAddresses nt =
    remoteOrNode ra = case remoteAddressToNodeAddress ra of
                        Just na -> Right na
                        Nothing -> Left ra
-
